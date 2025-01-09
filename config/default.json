@@ -1,0 +1,6 @@
+{
+    "jwt" : {
+        "expiresIn":"1h",
+        "secret":"JWT_SECRET"
+    }
+}
