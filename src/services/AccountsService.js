@@ -10,7 +10,7 @@ export default class AccountsService {
     #connection
     constructor(connection_str, db_name) {
         this.#connection = new MongoConnection(connection_str, db_name);
-        this.#accounts = this.#connection.getCollection(process.env.ACCOUNT_COLLECTION);
+        this.#accounts = this.#connection.getCollection(config.get('ACCOUNT_COLLECTION'));
     }
     async getAccount(username) {
         const account = await this.#accounts.findOne({ _id: username });
