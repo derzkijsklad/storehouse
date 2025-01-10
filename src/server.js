@@ -13,7 +13,7 @@ const server = app.listen(port);
 server.on("listening", () => console.log(`listening on port ${server.address().port}`));
 app.use(express.json());
 app.use(cors({
-    origin: process.env.CORS_ORIGIN, 
+    origin: 'https://s3.us-east-1.amazonaws.com', 
     methods: ['GET', 'POST', 'PUT', 'DELETE'], 
     credentials: true
 }));
