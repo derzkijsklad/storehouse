@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { errorHandler } from "./errors/errors.js";
 import { accounts_route } from "./routes/accounts.js";
+import { container_routes } from "./routes/containerRoutes.js";
 
 
 dotenv.config();
@@ -11,6 +12,7 @@ const server = app.listen(port);
 server.on("listening", () => console.log(`listening on port ${server.address().port}`));
 app.use(express.json());
 app.use('/api/auth', accounts_route);
+app.use('/api', container_routes);
 
 
 app.use(errorHandler)
