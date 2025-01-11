@@ -25,14 +25,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   const login = (token: string) => {
-    const decoded: DecodedToken = jwtDecode(token); 
+    const decoded: DecodedToken = jwtDecode(token);
     setUser({ id: decoded.id, role: decoded.role });
-    localStorage.setItem("token", token);
+    sessionStorage.setItem("token", token);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("token"); 
   };
 
   return (
@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
