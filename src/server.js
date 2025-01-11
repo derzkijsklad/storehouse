@@ -12,11 +12,7 @@ const port = process.env.PORT|| 5000;
 const server = app.listen(port);
 server.on("listening", () => console.log(`listening on port ${server.address().port}`));
 app.use(express.json());
-app.use(cors({
-    origin: 'https://s3.us-east-1.amazonaws.com', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-    credentials: true
-}));
+
 app.use('/api/auth', accounts_route);
 app.use('/api', container_routes);
 
