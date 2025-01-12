@@ -15,7 +15,7 @@ const server = app.listen(port);
 server.on("listening", () => console.log(`listening on port ${server.address().port}`));
 app.use(express.json());
 app.use(validateBody(schemas));
-app.use(valid)
+app.use(valid);
 app.use(corsMiddleware);
 app.options('*', corsMiddleware);
 
