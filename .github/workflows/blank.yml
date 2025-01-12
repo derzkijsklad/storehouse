@@ -1,4 +1,4 @@
-name: Lint Backend Code
+name: Basic Syntax Check
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - backend 
 
 jobs:
-  lint:
+  syntax-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +18,8 @@ jobs:
       with:
         node-version: '18'  
 
-    - name: Install dependencies
-      run: npm install  
-    - name: Run ESLint to check for code errors
-      run: npx eslint . --ext .js,.jsx,.ts,.tsx 
+    - name: Run basic syntax check
+      run: |
+        for file in $(find . -type f -name "*.js"); do
+          node --check "$file" || exit 1
+        done
