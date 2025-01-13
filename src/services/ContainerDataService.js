@@ -1,5 +1,6 @@
 import PostgresConnection from '../databases/postgres/PostgresConnection.js';
 import { getError } from '../errors/errors.js';
+import { PRODUCT_DATA_QUERIES } from '../utils/queries.js';
 
 export default class ContainerDataService {
   #db;
@@ -9,13 +10,13 @@ export default class ContainerDataService {
   }
 
   async getAllContainers() {
-    const query = 'SELECT * FROM container_data';
+    const query = PRODUCT_DATA_QUERIES.GET_ALL_CONTAINERS;
     const result = await this.#db.query(query);
     return result.rows;
   }
 
   async getContainerById(id) {
-    const query = 'SELECT * FROM container_data WHERE id = $1';
+    const query = PRODUCT_DATA_QUERIES.GET_CONTAINER_BY_ID;
     const result = await this.#db.query(query, [id]);
     if (result.rows.length === 0) {
       throw getError(404,`Container with id ${id} not found`);
