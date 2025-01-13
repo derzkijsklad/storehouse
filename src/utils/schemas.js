@@ -12,6 +12,11 @@ const schemaUpdatePassword = Joi.object({
     password: Joi.string().min(8).required(),
     newPassword: Joi.string().min(8).required(),
 });
+const schemaChangeEmail = Joi.object({
+    username: Joi.string().min(4).required(),
+    password: Joi.string().min(8).required(),
+    newEmail: Joi.string().email().required(),
+});
 
 const schemas = {
     '/api/auth/login': {
@@ -20,6 +25,9 @@ const schemas = {
     '/api/auth/password': {
         PUT: schemaUpdatePassword,
     },
+    '/api/auth/email': {
+        PATCH: schemaChangeEmail,
+    }
 };
 
 export default schemas;

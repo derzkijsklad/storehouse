@@ -8,6 +8,11 @@ accounts_route.post('/login', expressAsyncHandler(async (req, res) => {
     res.status(200).json(result);
 }))
 accounts_route.put('/password', expressAsyncHandler(async (req, res) => {
-   const account = await accountsService.updatePassword(req.body);
-   res.status(200).json(account);
+   const result = await accountsService.updatePassword(req.body);
+   res.status(200).json(result);
 }));
+accounts_route.patch('/email', expressAsyncHandler(async (req, res) => {
+      const result = await accountsService.changeEmail(req.body);
+      res.status(200).json(result);
+    })
+  );
