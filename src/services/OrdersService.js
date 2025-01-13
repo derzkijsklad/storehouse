@@ -35,12 +35,28 @@ export default class OrdersService {
         return result.rows;
 
     }
+    async checkExistingOpenOrder(container_id, product_name) {
+        const query = `
+            SELECT * FROM orders
+            WHERE container_id = $1 AND product_name = $2 AND order_status = 'open'
+        `;
+        const params = [container_id, product_name];
+        const result = await this.#db.query(query, params);
+
+        if (result.rows.length > 0) {
+            throw getError(
+                400,
+                `An open order for product ${product_name} in container ${container_id} already exists`
+            );
+        }
+    }
 
     async createOrder({ container_id, product_name, quantity }) {
         if (!container_id ) {
             throw getError(400, 'Missing required fields');
         }
         await containersService.getContainerById(container_id);
+        await this.checkExistingOpenOrder(container_id, product_name);
         const query = `
           INSERT INTO orders (container_id, product_name, quantity, order_status, created_at)
           VALUES ($1, $2, $3, 'open', NOW())
