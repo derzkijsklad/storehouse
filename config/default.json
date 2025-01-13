@@ -1,8 +1,11 @@
 {
-    "jwt" : {
-        "expiresIn":"1h",
-        "secret":"JWT_SECRET"
-    },
-    "ACCOUNT_DB": "ACCOUNT_DB",
-  "ACCOUNT_COLLECTION": "ACCOUNT_COLLECTION"
+  "jwt": {
+    "expiresIn": "1h",
+    "secret": "JWT_SECRET"
+  },
+  "ACCOUNT_DB": "ACCOUNT_DB",
+  "ACCOUNT_COLLECTION": "ACCOUNT_COLLECTION",
+  "bcrypt": {
+    "saltRounds": 10
+  }
 }

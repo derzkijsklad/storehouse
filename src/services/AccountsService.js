@@ -28,6 +28,15 @@ export default class AccountsService {
         return {token};
 
     }
+    async updatePassword({ username, password, newPassword }) {
+        const account = await this.getAccount(username);
+        if (!await bcrypt.compare(password, account.hashPassword)) {
+            throw getError(400, "incorrect username/password");
+        }
+        const hashPassword = await bcrypt.hash(newPassword, config.get("bcrypt.saltRounds"));
+        await this.#accounts.updateOne({ _id: username }, { $set: { hashPassword } });
+        return { username, role: account.role };
+    }
     
 }
 function getJWT(username, role) {
