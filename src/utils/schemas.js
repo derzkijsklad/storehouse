@@ -44,9 +44,7 @@ const schemas = {
     },
     '/api/orders': {
         GET: schemaGetOrders,
-    },
-    '/api/orders': {
-        POST: schemaCreateOrder,
+        POST: schemaCreateOrder
     }
 };
 

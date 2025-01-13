@@ -8,7 +8,7 @@ export function validateBody(schemas) {
                 req.validated = true;
                 const { error } = schema.validate(req.body, { abortEarly: false });
                 if (error) {
-                    req.error_message = error.details.map((detail) => detail.message.replace(/\"/g, '')).join(', ');
+                    req.error_message = error.details.map((detail) => detail?.message.replace(/\"/g, '')).join(', ');
                 }
             }
         }

@@ -15,7 +15,7 @@ export default class AccountsService {
     async getAccount(username) {
         const account = await this.#accounts.findOne({ _id: username });
         if (!account) {
-            throw getError(404, `account ${username} not found`);
+            throw getError(404, `account  not found`);
         }
         return account;
     }

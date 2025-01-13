@@ -1,3 +1,4 @@
+import { containersService } from '../config/service.js';
 import PostgresConnection from '../databases/postgres/PostgresConnection.js';
 import { getError } from '../errors/errors.js';
 
@@ -36,7 +37,10 @@ export default class OrdersService {
     }
 
     async createOrder({ container_id, product_name, quantity }) {
-        await this.validateContainerId(container_id);
+        if (!container_id ) {
+            throw getError(400, 'Missing required fields');
+        }
+        await containersService.getContainerById(container_id);
         const query = `
           INSERT INTO orders (container_id, product_name, quantity, order_status, created_at)
           VALUES ($1, $2, $3, 'open', NOW())
@@ -46,14 +50,7 @@ export default class OrdersService {
         const result = await this.#db.query(query, params);
         return result.rows[0];
     }
-    async validateContainerId(container_id) {
-        try {
-            const query = `SELECT 1 FROM containers_data WHERE id = ${container_id}`;
-            await this.#db.query(query);
-        } catch (error) {
-            throw getError(400, `Invalid container_id: ${container_id}`);
-        }
-    }
+    
     async closeOrder({ id }) {
         if (!id) {
             throw getError(400, 'Missing order ID');
@@ -63,7 +60,6 @@ export default class OrdersService {
             if (checkResult.rows.length === 0) {
                 throw getError(404, 'Order not found');
             }
-    
             if (checkResult.rows[0].order_status === 'closed') {
                 throw getError(400, 'Order is already closed');
             }
