@@ -17,6 +17,11 @@ const schemaChangeEmail = Joi.object({
     password: Joi.string().min(8).required(),
     newEmail: Joi.string().email().required(),
 });
+ const schemaGetOrders =Joi.object({
+    order_status: Joi.string().valid('open', 'closed').optional(),
+    container_id: Joi.number().optional(),
+    product_name: Joi.string().optional(),
+});
 
 const schemas = {
     '/api/auth/login': {
@@ -27,7 +32,10 @@ const schemas = {
     },
     '/api/auth/email': {
         PATCH: schemaChangeEmail,
-    }
+    },
+    '/api/orders': {
+        GET: schemaGetOrders,
+    },
 };
 
 export default schemas;
