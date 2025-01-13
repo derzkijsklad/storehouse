@@ -8,6 +8,7 @@ export default class OrdersService {
     constructor(connectionString) {
         this.#db = new PostgresConnection(connectionString);
     }
+    
     async getOrders({ order_status, container_id, product_name }) {
         let query = 'SELECT * FROM orders WHERE 1=1';
         const params = [];
@@ -34,4 +35,47 @@ export default class OrdersService {
 
     }
 
+    async createOrder({ container_id, product_name, quantity }) {
+        await this.validateContainerId(container_id);
+        const query = `
+          INSERT INTO orders (container_id, product_name, quantity, order_status, created_at)
+          VALUES ($1, $2, $3, 'open', NOW())
+          RETURNING *;
+        `;
+        const params = [container_id, product_name, quantity];
+        const result = await this.#db.query(query, params);
+        return result.rows[0];
+    }
+    async validateContainerId(container_id) {
+        try {
+            const query = `SELECT 1 FROM containers_data WHERE id = ${container_id}`;
+            await this.#db.query(query);
+        } catch (error) {
+            throw getError(400, `Invalid container_id: ${container_id}`);
+        }
+    }
+    async closeOrder({ id }) {
+        if (!id) {
+            throw getError(400, 'Missing order ID');
+        }
+            const checkQuery = 'SELECT order_status FROM orders WHERE id = $1';
+            const checkResult = await this.#db.query(checkQuery, [id]);
+            if (checkResult.rows.length === 0) {
+                throw getError(404, 'Order not found');
+            }
+    
+            if (checkResult.rows[0].order_status === 'closed') {
+                throw getError(400, 'Order is already closed');
+            }
+            const query = `
+              UPDATE orders
+              SET order_status = 'closed', closed_at = NOW()
+              WHERE id = $1 AND order_status = 'open'
+              RETURNING *;
+            `;
+            
+            const result = await this.#db.query(query,[ id]);
+            return result.rows[0];
+        
+    }    
 }

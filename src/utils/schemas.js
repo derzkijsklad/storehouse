@@ -1,4 +1,7 @@
  import Joi from "joi"
+
+ const productNames = ['Widget A', 'Gadget B', 'Tool C', 'Device D', 'Accessory E'];
+
 export const schemaParams = Joi.object({
     id:Joi.number().integer().positive()
  })
@@ -20,8 +23,14 @@ const schemaChangeEmail = Joi.object({
  const schemaGetOrders =Joi.object({
     order_status: Joi.string().valid('open', 'closed').optional(),
     container_id: Joi.number().optional(),
-    product_name: Joi.string().optional(),
+    product_name: Joi.string().valid(...productNames).optional(),
 });
+const schemaCreateOrder = Joi.object({
+    container_id: Joi.number().integer().required(),
+    product_name: Joi.string().valid(...productNames).required(),
+    quantity: Joi.number().integer().min(1).required()
+  });
+  
 
 const schemas = {
     '/api/auth/login': {
@@ -36,6 +45,9 @@ const schemas = {
     '/api/orders': {
         GET: schemaGetOrders,
     },
+    '/api/orders': {
+        POST: schemaCreateOrder,
+    }
 };
 
 export default schemas;
