@@ -7,6 +7,8 @@ import corsMiddleware from "./middlewares/corsMiddleware.js";
 import { valid, validateBody } from "./middlewares/validationMiddleware.js";
 import schemas from "./utils/schemas.js";
 import { orders_routes } from "./routes/ordersRoutes.js";
+import { getErrorsService } from "./config/service.js";
+import { errorsRoutes } from "./routes/errorsRoutes.js";
 
 
 dotenv.config();
@@ -23,6 +25,7 @@ app.options('*', corsMiddleware);
 app.use('/api/auth', accounts_route);
 app.use('/api', orders_routes);
 app.use('/api', container_routes);
+app.use('/api', errorsRoutes);
 
 
 app.use(errorHandler)

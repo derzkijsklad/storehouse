@@ -20,3 +20,6 @@ export const PRODUCT_DATA_QUERIES = {
     GET_ALL_CONTAINERS: 'SELECT * FROM container_data',
     GET_CONTAINER_BY_ID: 'SELECT * FROM container_data WHERE id = $1',
 };
+export const ERROR_QUERIES = {
+    GET_ALL_ERRORS: 'SELECT * FROM errors ORDER BY created_at DESC'
+  };

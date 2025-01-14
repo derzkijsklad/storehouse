@@ -37,8 +37,6 @@ export default class AccountsService {
         return {username, role:account.role, email:newEmail};
     }
     
-    
-
     async checkPassword(username, password) {
         const account = await this.getAccount(username);
         if (!await bcrypt.compare(password, account.hashPassword)) {

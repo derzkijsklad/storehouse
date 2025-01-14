@@ -15,22 +15,18 @@ export default class OrdersService {
         let query = ORDER_QUERIES.GET_ORDERS;
         const params = [];
         let paramIndex = 1;
-
         if (order_status) {
             query += ` AND order_status = $${paramIndex++}`;
             params.push(order_status);
         }
-
         if (container_id) {
             query += ` AND container_id = $${paramIndex++}`;
             params.push(container_id);
         }
-
         if (product_name) {
             query += ` AND product_name = $${paramIndex++}`;
             params.push(product_name);
         }
-
         const result = await this.#db.query(query, params);
         if (result.rows.length === 0) {
             throw getError(404, 'No orders found');
@@ -41,11 +37,8 @@ export default class OrdersService {
     async checkExistingOpenOrder(container_id, product_name) {
         const params = [container_id, product_name];
         const result = await this.#db.query(ORDER_QUERIES.CHECK_OPEN_ORDER, params);
-
         if (result.rows.length > 0) {
-            throw getError(
-                400,
-                `An open order for product ${product_name} in container ${container_id} already exists`
+            throw getError( 400,`An open order for product ${product_name} in container ${container_id} already exists`
             );
         }
     }
