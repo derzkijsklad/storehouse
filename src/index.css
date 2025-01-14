@@ -1,23 +1,26 @@
-
-:root {
-  --background-color-light: #ffffff;
-  --background-color-dark: #242424;
-  --text-color-light: #000;
-  --text-color-dark: #fff;
-}
-
-
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
-  background-color: var(--background-color-light);
-  color: var(--text-color-light);
+  background-color: #ffffff;
+  color: #000;
   transition: all 0.3s ease;
 }
 
-body.dark-mode {
-  background-color: var(--background-color-dark);
-  color: var(--text-color-dark);
+.app-container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+}
+
+.MuiTablePagination-root {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 button {
@@ -26,31 +29,30 @@ button {
   padding: 8px 16px;
   cursor: pointer;
 }
-body.dark-mode {
-  background-color: #121212;
-  color: white;
+
+.paper-container {
+  width: 100%;
+  padding: 20px;
 }
 
-body.dark-mode a {
-  color: #bb86fc;
+.order-buttons {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-body.dark-mode .MuiCard-root {
-  background-color: #333333;
-  border-color: #444444;
+.table-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
-
-body.light-mode {
-  background-color: #ffffff;
-  color: black;
-}
-
-body.light-mode a {
-  color: #007bff;
-}
-
-body.light-mode .MuiCard-root {
-  background-color: #f8f9fa;
-  border-color: #ddd;
+.table-paper {
+  width: 100%;
+  max-width: 1200px; 
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

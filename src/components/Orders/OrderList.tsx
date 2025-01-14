@@ -1,103 +1,125 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Typography,
+} from "@mui/material";
 import { Link } from "react-router-dom";
-import { Card, CardContent, Typography, CircularProgress, Grid, Box } from "@mui/material";
-import { useTheme } from "../../context/ThemeContext";
+import "./Orders.css";
 
-interface Order {
-  id: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
+type Order = {
+  id: number;
+  product_name: string;
+  created_at: string;
+};
 
-const OrderList = () => {
-  const { isDarkMode } = useTheme(); 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+const OrderList: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([
+    {
+      id: 1,
+      product_name: "Product A",
+      created_at: "2023-11-01T12:34:56Z",
+    },
+    {
+      id: 2,
+      product_name: "Product b",
+      created_at: "2023-12-01T12:34:56Z",
+    },
+    {
+      id: 3,
+      product_name: "Product c",
+      created_at: "2023-10-01T12:34:56Z",
+    },
+  ]);
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        setLoading(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-        const ordersData: Order[] = [
-          { id: "1", status: "Pending", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-          { id: "2", status: "Shipped", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-          { id: "3", status: "Delivered", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        ];
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
 
-        const sortedOrders = ordersData.sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-
-        setOrders(sortedOrders);
-      } catch (err) {
-        setError("Failed to load orders. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadOrders();
-  }, []);
-
-  if (loading) {
-    return <CircularProgress />;
-  }
-
-  if (error) {
-    return (
-      <div className="error-message">
-        <Typography color="error">{error}</Typography>
-      </div>
-    );
-  }
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      backgroundColor: isDarkMode ? '#121212' : '#ffffff', 
-    }}>
-      <Box sx={{
-        textAlign: 'center',
-        width: '100%',
-        paddingTop: '50px',
-        color: isDarkMode ? 'white' : 'black', 
-      }}>
-        <Typography variant="h3" gutterBottom>
+    <Box className="app-container">
+      <Paper className="paper-container">
+        <Typography variant="h3" align="center" gutterBottom>
           Orders
         </Typography>
-        {orders.length === 0 ? (
-          <Typography>No orders available.</Typography>
-        ) : (
-          <Grid container spacing={2} justifyContent="center">
-            {orders.map((order) => (
-              <Grid item xs={12} sm={6} md={4} key={order.id}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6">
-                      Order #{order.id} - {order.status}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Created: {new Date(order.createdAt).toLocaleString()}
-                    </Typography>
-                    <Link to={`/orders/${order.id}`} style={{ textDecoration: 'none' }}>
-                      <Typography variant="body2" color="primary">
-                        View Details
-                      </Typography>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
+        <Box className="order-buttons">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => console.log("Create Order")}
+            sx={{ width: "150px" }}
+          >
+            Create Order
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => console.log("Close Order")}
+            sx={{ width: "150px" }}
+          >
+            Close Order
+          </Button>
+        </Box>
+      </Paper>
+
+      <Box className="table-container">
+        <Paper className="table-paper">
+          <TableContainer>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Product Name</TableCell>
+                  <TableCell>Created At</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {orders
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell>{order.id}</TableCell>
+                      <TableCell>{order.product_name}</TableCell>
+                      <TableCell>{new Date(order.created_at).toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Link to={`/orders/${order.id}`}>View Details</Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={orders.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Box>
+        </Paper>
       </Box>
     </Box>
   );

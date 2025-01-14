@@ -1,0 +1,51 @@
+.app-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  .paper-container {
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .order-buttons {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .table-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 20px 0; 
+  }
+  
+  .table-paper {
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  table {
+    width: 100%;
+    table-layout: fixed;
+  }
+  
+  .MuiTablePagination-root {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  

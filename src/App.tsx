@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
 import Login from "./components/Auth/Login";
-import Orders from "./components/Orders/pages/Orders";
+import Orders from "./components/Orders/Orders";
 import { JSX } from "react/jsx-runtime";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -12,7 +11,6 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
 const App = () => (
   <AuthProvider>
-    <ThemeProvider>
       <BrowserRouter basename="/">
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -27,7 +25,6 @@ const App = () => (
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>
-    </ThemeProvider>
   </AuthProvider>
 );
 
