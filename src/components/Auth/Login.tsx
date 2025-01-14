@@ -19,7 +19,7 @@ const Login = () => {
       login(token); 
       navigate("/orders"); 
     } catch (err) {
-      setError("Invalid credentials");  
+      setError("Invalid credentials"); 
     }
   };
 
@@ -46,7 +46,7 @@ const Login = () => {
           </div>
           <button type="submit">Login</button>
         </form>
-        {error && <p>{error}</p>} 
+        {error && <p>{error}</p>} {/* Отображение ошибки */}
       </div>
     </div>
   );
