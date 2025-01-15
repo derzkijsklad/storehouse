@@ -21,6 +21,8 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Set up environment variables
+      run: echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> $GITHUB_ENV
     - name: Run basic syntax check
       run: |
         for file in $(find . -type f -name "*.js"  ! -path "./node_modules/*"); do
