@@ -28,8 +28,8 @@ describe('GET /api/errors', () => {
 
   it('should return all errors from the database', async () => {
     const mockErrors = [
-      { id: 1, message: 'Error 1', created_at: '2025-01-15T10:00:00Z' },
-      { id: 2, message: 'Error 2', created_at: '2025-01-15T10:05:00Z' },
+      { id: 1, type: 'DatabaseError',  message: 'Unable to connect to database',  created_at: '2025-01-15T10:00:00Z' },
+      { id: 2, type: 'ValidationError',message: 'Invalid input data', created_at: '2025-01-15T10:05:00Z' },
     ];
 
     getAllErrorsStub.resolves(mockErrors);
