@@ -7,7 +7,6 @@ import corsMiddleware from "./middlewares/corsMiddleware.js";
 import { valid, validateBody } from "./middlewares/validationMiddleware.js";
 import schemas from "./utils/schemas.js";
 import { orders_routes } from "./routes/ordersRoutes.js";
-import { getErrorsService } from "./config/service.js";
 import { errorsRoutes } from "./routes/errorsRoutes.js";
 
 
