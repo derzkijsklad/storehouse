@@ -5,7 +5,9 @@ export default class PostgresConnection {
   #pool;
 
   constructor(connectionString) {
-    this.#pool = new Pool({ connectionString,connectionTimeoutMillis: 5000 });
+    this.#pool = new Pool({ connectionString,connectionTimeoutMillis: 5000,ssl: {
+      rejectUnauthorized: false, 
+    }, });
   }
 
   async query(text, params) {
