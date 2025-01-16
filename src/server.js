@@ -11,7 +11,10 @@ import { errorsRoutes } from "./routes/errorsRoutes.js";
 import { auth, authenticate } from "./middlewares/authenticateMiddleware.js";
 
 const skipRoutes = [
-    { path: "/api/auth/login", method: "POST" }
+    { path: "/api/auth/login", method: "POST"},
+    { path: "/api/auth/manageUser", method: "POST"},
+    { path: "/api/auth/manageUser", method: "PUT"},
+    { path: "/api/auth/manageUser", method: "DELETE"}
 ];
 
 

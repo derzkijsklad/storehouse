@@ -31,3 +31,14 @@ function verifyToken(token) {
         throw getError(401, "Invalid or expired token");
     }
 }
+export const authenticateRequest = (req) => {
+    const header = req.header("Authorization");
+    if (!header?.startsWith("Basic ")) {
+        throw getError(401, "Authorization header missing or invalid");
+    }
+
+    const [username, password] = Buffer.from(header.substring(6), "base64").toString("ascii").split(":");
+    if (username !== process.env.OWNER_USERNAME || password !== process.env.OWNER_PASSWORD) {
+        throw getError(401, "Unauthorized: Invalid credentials");
+    }
+};

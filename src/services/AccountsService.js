@@ -44,9 +44,39 @@ export default class AccountsService {
         }
         return account;
     }
+    async addUser({ username, email, password, role }) {
+        const existingUser = await this.#accounts.findOne({ _id: username });
+        if (existingUser) {
+            throw getError(400, `User ${username} already exists`);
+        }
+
+        const hashPassword = await bcrypt.hash(password, config.get("bcrypt.saltRounds"));
+        await this.#accounts.insertOne({ _id: username, email, hashPassword, role });
+    }
+
+    async updateUser({ username, email, password, role }) {
+        const existingUser = await this.#accounts.findOne({ _id: username });
+        if (!existingUser) {
+            throw getError(404, `User ${username} not found`);
+        }
+
+        const hashPassword = await bcrypt.hash(password, config.get("bcrypt.saltRounds"));
+        await this.#accounts.updateOne(
+            { _id: username },
+            { $set: { email, hashPassword, role } }
+        );
+    }
+
+    async deleteUser(username) {
+        const result = await this.#accounts.deleteOne({ _id: username });
+        if (result.deletedCount === 0) {
+            throw getError(404, `User ${username} not found`);
+        }
+    } 
 }
 function getJWT(username, role) {
     return jwt.sign({role}, config.get("jwt.secret"), {
        subject:username,
        expiresIn:config.get("jwt.expiresIn")
     })}
+    
