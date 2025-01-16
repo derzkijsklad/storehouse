@@ -5,7 +5,7 @@ export default class PostgresConnection {
   #pool;
 
   constructor(connectionString) {
-    this.#pool = new Pool({ connectionString });
+    this.#pool = new Pool({ connectionString,connectionTimeoutMillis: 5000 });
   }
 
   async query(text, params) {
@@ -13,7 +13,7 @@ export default class PostgresConnection {
     try {
       const result = await client.query(text, params);
       return result;
-    } finally {
+    }finally {
       client.release();
     }
   }
