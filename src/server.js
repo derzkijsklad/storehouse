@@ -23,13 +23,14 @@ const app = express();
 const port = process.env.PORT|| 5000;
 const server = app.listen(port);
 server.on("listening", () => console.log(`listening on port ${server.address().port}`));
+app.use(corsMiddleware);
+app.options('*', corsMiddleware);
 app.use(express.json());
 app.use(authenticate);
 app.use(auth(skipRoutes));
 app.use(validateBody(schemas));
 app.use(valid);
-app.use(corsMiddleware);
-app.options('*', corsMiddleware);
+
 
 app.use('/api/auth', accounts_route);
 app.use('/api', orders_routes);
