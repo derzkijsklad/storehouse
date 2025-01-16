@@ -8,6 +8,11 @@ import { valid, validateBody } from "./middlewares/validationMiddleware.js";
 import schemas from "./utils/schemas.js";
 import { orders_routes } from "./routes/ordersRoutes.js";
 import { errorsRoutes } from "./routes/errorsRoutes.js";
+import { auth, authenticate } from "./middlewares/authenticateMiddleware.js";
+
+const skipRoutes = [
+    { path: "/api/auth/login", method: "POST" }
+];
 
 
 dotenv.config();
@@ -16,6 +21,8 @@ const port = process.env.PORT|| 5000;
 const server = app.listen(port);
 server.on("listening", () => console.log(`listening on port ${server.address().port}`));
 app.use(express.json());
+app.use(authenticate);
+app.use(auth(skipRoutes));
 app.use(validateBody(schemas));
 app.use(valid);
 app.use(corsMiddleware);
