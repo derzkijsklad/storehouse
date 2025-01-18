@@ -2,40 +2,28 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { fetchOrderDetails } from "../../api/orders";
-
-interface OrderItem {
-  name: string;
-  quantity: number;
-}
-
-interface OrderDetailsProps {
-  id: string;
-  product_name: string;
-  quantity: number;
-  order_status: string;
-  created_at: string;
-  closed_at: string | null;
-  items: OrderItem[];
-}
+import type { OrderDetails as OrderDetailsType } from "../../api/orders"; // Используем import type
 
 const OrderDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const [order, setOrder] = useState<OrderDetailsProps | null>(null);
+  const [order, setOrder] = useState<OrderDetailsType | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const loadOrderDetails = async () => {
       try {
-        const data = await fetchOrderDetails(id!);
+        if (!id) {
+          setError("Order ID is missing");
+          return;
+        }
+        const data = await fetchOrderDetails(id);
         setOrder(data);
       } catch {
         setError("Failed to load order details");
       }
     };
 
-    if (id) {
-      loadOrderDetails();
-    }
+    loadOrderDetails();
   }, [id]);
 
   if (error) return <Typography color="error">{error}</Typography>;

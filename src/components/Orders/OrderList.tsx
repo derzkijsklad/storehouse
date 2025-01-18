@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import React, { useState, useEffect } from "react";
 import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
-import { fetchOrders, createOrder, closeOrder } from "../../api/orders";
+import { fetchOrders, createOrder, closeOrder, Order } from "../../api/orders"; 
 import "./Orders.css";
-
-type Order = {
-  id: number;
-  product_name: string;
-  created_at: string;
-  order_status: string;
-};
 
 const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);

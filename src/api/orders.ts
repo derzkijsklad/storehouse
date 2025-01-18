@@ -1,40 +1,37 @@
 import axiosInstance from "./axiosInstance";
 
-interface Order {
+export type Order = {
   id: number;
-  product_name: string;
-  created_at: string;
-  order_status: string;
-}
-
-interface OrderDetailsProps {
-  id: string;
+  container_id: number;
   product_name: string;
   quantity: number;
   order_status: string;
   created_at: string;
   closed_at: string | null;
-  items: { name: string; quantity: number }[];
-}
+};
 
-interface CreateOrderPayload {
+export type OrderDetails = Order & {
+  items: { name: string; quantity: number }[];
+};
+
+type CreateOrderPayload = {
   container_id: number;
   product_name: string;
   quantity: number;
-}
+};
 
-interface CloseOrderPayload {
+type CloseOrderPayload = {
   id: number;
-}
+};
 
 export const fetchOrders = async (): Promise<Order[]> => {
   const response = await axiosInstance.get("/api/orders");
   return response.data as Order[];
 };
 
-export const fetchOrderDetails = async (id: string): Promise<OrderDetailsProps> => {
+export const fetchOrderDetails = async (id: string): Promise<OrderDetails> => {
   const response = await axiosInstance.get(`/api/orders/${id}`);
-  return response.data as OrderDetailsProps;
+  return response.data as OrderDetails;
 };
 
 export const createOrder = async (payload: CreateOrderPayload): Promise<Order> => {
