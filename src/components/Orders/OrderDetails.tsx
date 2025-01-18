@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Typography, CircularProgress, Box } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
+import { fetchOrderDetails } from "../../api/orders";
 
 interface OrderItem {
   name: string;
@@ -9,28 +10,13 @@ interface OrderItem {
 
 interface OrderDetailsProps {
   id: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
+  product_name: string;
+  quantity: number;
+  order_status: string;
+  created_at: string;
+  closed_at: string | null;
   items: OrderItem[];
 }
-
-const fetchOrderDetails = async (id: string): Promise<OrderDetailsProps> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        id,
-        status: "Shipped",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        items: [
-          { name: "Product A", quantity: 2 },
-          { name: "Product B", quantity: 1 },
-        ],
-      });
-    }, 1000);
-  });
-};
 
 const OrderDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,9 +44,11 @@ const OrderDetails = () => {
   return (
     <Box>
       <Typography variant="h4">Order #{order.id}</Typography>
-      <Typography>Status: {order.status}</Typography>
-      <Typography>Created At: {new Date(order.createdAt).toLocaleString()}</Typography>
-      <Typography>Updated At: {new Date(order.updatedAt).toLocaleString()}</Typography>
+      <Typography>Status: {order.order_status}</Typography>
+      <Typography>Created At: {new Date(order.created_at).toLocaleString()}</Typography>
+      <Typography>
+        Closed At: {order.closed_at ? new Date(order.closed_at).toLocaleString() : "Not Closed"}
+      </Typography>
       <Typography variant="h5">Items</Typography>
       <ul>
         {order.items.map((item, index) => (
