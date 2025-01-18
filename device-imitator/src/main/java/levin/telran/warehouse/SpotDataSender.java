@@ -13,7 +13,7 @@ public class SpotDataSender {
 		private static final int N_SPOTS = 5;
 		private static final int TRESHOLD_PERCENT_VALUE = 50;
 		private static final int MAX_VALUE = 20;
-		private static final String HOST = "localhost";
+		private static final String HOST = "54.144.254.81";
 		private static final int PORT = 5000;
 		private static final int INCONSISTENCY_PROB = 5;
 		private static final int CHANGE_PROB = 60;
