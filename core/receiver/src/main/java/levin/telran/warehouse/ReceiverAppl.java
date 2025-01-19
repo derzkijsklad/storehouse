@@ -19,7 +19,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest.Builder;
 public class ReceiverAppl {
 	private static final int PORT = 5000;
 	private static final int MAX_BUFFER_SIZE = 1500;
-	private static final Level DEFAULT_LOGGING_LEVEL = Level.INFO;
+	private static final Level DEFAULT_LOGGING_LEVEL = Level.FINE;
 	private static final int TRESHOLD_PERCENT_VALUE = 50;
 	private static final int MAX_VALUE = 20;
 	private static final String RECEIVED_DATA_TABLE_NAME = "received_data";
@@ -28,7 +28,7 @@ public class ReceiverAppl {
 	static DynamoDbClient client = DynamoDbClient.builder().build();
 	static Builder request;
 
-	static Logger logger = Logger.getLogger("WeightReceiverAppl");
+	static Logger logger = Logger.getLogger("receiver-appl");
 
 	public static void main(String[] args) throws Exception {
 		request = PutItemRequest.builder().tableName(RECEIVED_DATA_TABLE_NAME);
@@ -68,7 +68,6 @@ public class ReceiverAppl {
 
 	private static void processReceivedData(DatagramPacket packet) {
 		String json = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
-		logger.info(json);
 		logger.fine(json);
 		SpotData spotData = SpotData.getSpotData(json);
 		client.putItem(request.item(getMapItem(spotData)).build());

@@ -25,13 +25,20 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>dynamodb</artifactId>
 			<version>2.28.24</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-simple</artifactId>
+    <version>1.7.32</version> <!-- Use the appropriate version -->
+</dependency>
 
-		</dependency>
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>sdk-core</artifactId>
-			<version>2.28.24</version> <!-- Ensure this is the latest version -->
-		</dependency>
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>jul-to-slf4j</artifactId>
+    <version>1.7.32</version> <!-- Use the appropriate version -->
+</dependency>
+	
 	</dependencies>
 
 	<build>
