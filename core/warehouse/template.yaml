@@ -1,0 +1,253 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Warehouse system using RDS and Lambda within a VPC
+
+Globals:
+  Function:
+    Handler: warehouse.App::handleRequest
+    Runtime: java17
+    Architectures:
+      - x86_64
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        LOGGER_LEVEL: FINEST
+
+Resources:
+  # VPC creation
+  WarehouseVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: warehouse-vpc
+
+  # Internet Gateway for public access
+  WarehouseInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: warehouse-igw
+
+  # VPC Gateway attachment
+  WarehouseVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref WarehouseVPC
+      InternetGatewayId: !Ref WarehouseInternetGateway
+
+  # Subnets in the VPC
+  WarehouseSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WarehouseVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+
+  WarehouseSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WarehouseVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: us-east-1b
+      MapPublicIpOnLaunch: true
+
+  # Security Group for Lambda to connect to RDS
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref WarehouseVPC
+      GroupDescription: "Security group for Lambda"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0  # Allow Lambda access to RDS on port 5432
+
+  # DynamoDB Table for received_data
+  ReceivedDataStream:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: received_data
+      AttributeDefinitions:
+        - AttributeName: spotId
+          AttributeType: N
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: spotId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
+  # LackDetection Lambda function in VPC
+  LackDetection:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: LackDetection
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Resource: '*'
+              Action:
+                - dynamodb:*
+      # VpcConfig:
+      #   SubnetIds:
+      #     - !Ref WarehouseSubnet1
+      #     - !Ref WarehouseSubnet2
+      #   SecurityGroupIds:
+      #     - !GetAtt LambdaSecurityGroup.GroupId
+      Events:
+        TableRecordChange:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: LATEST
+            Stream: !GetAtt ReceivedDataStream.StreamArn
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName": ["INSERT"]}'
+
+  # Role with necessary permissions
+  DataToRDSLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service: lambda.amazonaws.com
+      Policies:
+        - PolicyName: DataToRDSLambdaFullAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*        # Full access to DynamoDB
+                  - rds:*             # Full access to RDS
+                  - logs:*            # Full access to CloudWatch Logs
+                  - ec2:CreateNetworkInterface  # Required for Lambda in VPC
+                  - ec2:DescribeNetworkInterfaces  # To describe network interfaces
+                  - ec2:DeleteNetworkInterface  # To delete network interfaces
+                Resource: "*"         # Allows access to all resources in DynamoDB, RDS, Logs, and EC2
+
+  # Lambda function for RDS transfer
+  DataToRDSLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: warehouse.App::handleRequest
+      CodeUri: RDSTransfer
+      Environment:
+        Variables:
+          RDS_HOST: !GetAtt WarehouseDB.Endpoint.Address
+          RDS_PORT: '5432'
+          RDS_USERNAME: postgres
+          RDS_PASSWORD: !Ref DBPassword
+          RDS_DB_NAME: warehouse_db
+          DYNAMODB_TABLE: spot_lack_data
+      Role: !GetAtt DataToRDSLambdaRole.Arn  # Attach the IAM role
+      VpcConfig:
+        SubnetIds:
+          - !Ref WarehouseSubnet1
+          - !Ref WarehouseSubnet2
+        SecurityGroupIds:
+          - !GetAtt LambdaSecurityGroup.GroupId
+      Events:
+        DynamoDBStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt SpotLackDataStream.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 5
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName": ["INSERT"]}'
+
+  # DynamoDB Table for storing spot lack data
+  SpotLackDataStream:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: spot_lack_data
+      AttributeDefinitions:
+        - AttributeName: spotId
+          AttributeType: N
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: spotId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
+  # RDS instance for PostgreSQL
+  WarehouseDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: warehouse-db
+      AllocatedStorage: "20"
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      EngineVersion: "14.14"
+      MasterUsername: postgres
+      MasterUserPassword: "postgres"
+      DBName: warehouse_db
+      VPCSecurityGroups:
+        - !GetAtt RDSSecurityGroup.GroupId
+      PubliclyAccessible: true
+      MultiAZ: false
+      BackupRetentionPeriod: 7
+      StorageEncrypted: false
+      DeletionProtection: false
+      Port: "5432"
+
+  # RDS Security Group for PostgreSQL
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "RDS security group to allow external access to PostgreSQL"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0  # Allows access from anywhere (can be restricted to specific IPs)
+
+  # SSM Parameter for DB password
+  DBPassword:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /warehouse/dbPassword
+      Type: String
+      Value: "postgres"
+
+Outputs:
+  WarehouseDBEndpoint:
+    Description: "The endpoint of the PostgreSQL RDS"
+    Value: !GetAtt WarehouseDB.Endpoint.Address
+
+  LambdaFunctionARN:
+    Description: "The ARN of the Lambda function"
+    Value: !GetAtt DataToRDSLambda.Arn
+
+  LackDetectionFunction:
+    Description: "Lack Detection Lambda function ARN"
+    Value: !GetAtt LackDetection.Arn
