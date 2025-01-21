@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 import React, { useState, useEffect } from "react";
 import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -15,13 +14,19 @@ const OrderList: React.FC = () => {
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        const fetchedOrders = await fetchOrders();
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+          setError("User is not authenticated");
+          return;
+        }
+  
+        const fetchedOrders = await fetchOrders(token);
         setOrders(fetchedOrders);
       } catch {
         setError("Failed to fetch orders");
       }
     };
-
+  
     loadOrders();
   }, []);
 
@@ -36,22 +41,41 @@ const OrderList: React.FC = () => {
 
   const handleCreateOrder = async () => {
     try {
-      const newOrder = await createOrder({ container_id: 1, product_name: "New Product", quantity: 10 });
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        setError("User is not authenticated");
+        return;
+      }
+  
+      const newOrder = await createOrder(
+        {
+          container_id: 1,
+          product_name: "New Product",
+          quantity: 10,
+        },
+        token
+      );
       setOrders([newOrder, ...orders]);
     } catch (error) {
       setError("Failed to create order");
     }
   };
-
+  
   const handleCloseOrder = async (orderId: number) => {
     try {
-      await closeOrder({ id: orderId });
-      setOrders(orders.filter(order => order.id !== orderId));
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        setError("User is not authenticated");
+        return;
+      }
+  
+      await closeOrder({ id: orderId }, token);
+      setOrders(orders.filter((order) => order.id !== orderId));
     } catch (error) {
       setError("Failed to close order");
     }
   };
-
+  
   return (
     <Box className="app-container">
       <Paper className="paper-container">

@@ -15,11 +15,12 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = await loginService(username, password); 
-      login(token); 
-      navigate("/orders"); 
+      const token = await loginService(username, password);
+      sessionStorage.setItem("authToken", token);
+      login(token);
+      navigate("/orders");
     } catch (err) {
-      setError("Invalid credentials"); 
+      setError("Invalid credentials");
     }
   };
 
@@ -46,7 +47,7 @@ const Login = () => {
           </div>
           <button type="submit">Login</button>
         </form>
-        {error && <p>{error}</p>} {/* Отображение ошибки */}
+        {error && <p>{error}</p>}
       </div>
     </div>
   );

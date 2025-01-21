@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import axiosInstance from "./axiosInstance";
 
 export type Order = {
@@ -24,8 +25,10 @@ type CloseOrderPayload = {
   id: number;
 };
 
-export const fetchOrders = async (): Promise<Order[]> => {
-  const response = await axiosInstance.get("/api/orders");
+export const fetchOrders = async (token: string): Promise<Order[]> => {
+  const response = await axiosInstance.get("/api/orders", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data as Order[];
 };
 
@@ -34,12 +37,26 @@ export const fetchOrderDetails = async (id: string): Promise<OrderDetails> => {
   return response.data as OrderDetails;
 };
 
-export const createOrder = async (payload: CreateOrderPayload): Promise<Order> => {
-  const response = await axiosInstance.post("/api/orders", payload);
+
+export const createOrder = async (payload: CreateOrderPayload, token: string): Promise<Order> => {
+  const response = await axiosInstance.post("/api/orders", payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data as Order;
 };
 
-export const closeOrder = async (payload: CloseOrderPayload): Promise<Order> => {
-  const response = await axiosInstance.post("/api/orders/close", payload);
+export const closeOrder = async (payload: CloseOrderPayload, token: string): Promise<Order> => {
+  const response = await axiosInstance.post("/api/orders/close", payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data as Order;
+};
+
+export const getStatistics = async () => {
+  try {
+    const response = await axiosInstance.get('/api/statistics');
+    return response.data;
+  } catch (error) {
+    throw new Error('Error fetching statistics data');
+  }
 };

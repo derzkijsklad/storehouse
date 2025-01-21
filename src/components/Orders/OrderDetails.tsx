@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { fetchOrderDetails } from "../../api/orders";
-import type { OrderDetails as OrderDetailsType } from "../../api/orders"; // Используем import type
+import type { OrderDetails as OrderDetailsType } from "../../api/orders"; 
 
 const OrderDetails = () => {
   const { id } = useParams<{ id: string }>();
