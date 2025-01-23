@@ -1,6 +1,6 @@
 import Joi from "joi"
 
-const productNames = ['Widget A', 'Gadget B', 'Tool C', 'Device D', 'Accessory E'];
+
 
 export const schemaParams = Joi.object({
     id: Joi.number().integer().positive()
@@ -21,14 +21,15 @@ const schemaChangeEmail = Joi.object({
     newEmail: Joi.string().email().required(),
 });
 const schemaGetOrders = Joi.object({
-    order_status: Joi.string().valid('open', 'closed').optional(),
-    container_id: Joi.number().optional(),
-    product_name: Joi.string().valid(...productNames).optional(),
+    id: Joi.number().integer().optional(),
+    is_closed: Joi.string().valid('true', 'false').optional(),
+    date: Joi.string()
+        .optional()
 });
+
 const schemaCreateOrder = Joi.object({
-    container_id: Joi.number().integer().required(),
-    product_name: Joi.string().valid(...productNames).required(),
-    quantity: Joi.number().integer().min(1).required()
+    spot_id: Joi.number().integer().required(),
+    value: Joi.number().required(),
 });
 const schemaManageUserAddUpdate = Joi.object({
     username: Joi.string().min(4).required(),
