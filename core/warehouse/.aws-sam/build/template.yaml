@@ -15,49 +15,15 @@ Globals:
       Variables:
         LOGGER_LEVEL: FINEST
 Resources:
-  WarehouseVPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: 10.0.0.0/16
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-      - Key: Name
-        Value: warehouse-vpc
   WarehouseInternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
       - Key: Name
         Value: warehouse-igw
-  WarehouseVPCGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId:
-        Ref: WarehouseVPC
-      InternetGatewayId:
-        Ref: WarehouseInternetGateway
-  WarehouseSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: WarehouseVPC
-      CidrBlock: 10.0.1.0/24
-      AvailabilityZone: us-east-1a
-      MapPublicIpOnLaunch: true
-  WarehouseSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: WarehouseVPC
-      CidrBlock: 10.0.2.0/24
-      AvailabilityZone: us-east-1b
-      MapPublicIpOnLaunch: true
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId:
-        Ref: WarehouseVPC
       GroupDescription: Security group for Lambda
       SecurityGroupIngress:
       - IpProtocol: tcp
@@ -145,22 +111,14 @@ Resources:
             - Endpoint.Address
           RDS_PORT: '5432'
           RDS_USERNAME: postgres
-          RDS_PASSWORD:
-            Ref: DBPassword
+          RDS_PASSWORD: postgres
           RDS_DB_NAME: warehouse_db
+          RDS_TABLE_NAME: orders_data
           DYNAMODB_TABLE: spot_lack_data
       Role:
         Fn::GetAtt:
         - DataToRDSLambdaRole
         - Arn
-      VpcConfig:
-        SubnetIds:
-        - Ref: WarehouseSubnet1
-        - Ref: WarehouseSubnet2
-        SecurityGroupIds:
-        - Fn::GetAtt:
-          - LambdaSecurityGroup
-          - GroupId
       Events:
         DynamoDBStream:
           Type: DynamoDB
@@ -206,10 +164,6 @@ Resources:
       MasterUsername: postgres
       MasterUserPassword: postgres
       DBName: warehouse_db
-      VPCSecurityGroups:
-      - Fn::GetAtt:
-        - RDSSecurityGroup
-        - GroupId
       PubliclyAccessible: true
       MultiAZ: false
       BackupRetentionPeriod: 7
@@ -225,12 +179,6 @@ Resources:
         FromPort: 5432
         ToPort: 5432
         CidrIp: '0.0.0.0/0'
-  DBPassword:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: /warehouse/dbPassword
-      Type: String
-      Value: postgres
 Outputs:
   WarehouseDBEndpoint:
     Description: The endpoint of the PostgreSQL RDS
