@@ -65,9 +65,6 @@ This system is built using Node.js and Express.js, with MongoDB for user account
    ```
    MONGO_URI=<your-mongodb-connection-string>
    POSTGRES_URI=<your-postgresql-connection-string>
-   JWT_SECRET=<your-jwt-secret>
-   OWNER_USERNAME=<admin-username>
-   OWNER_PASSWORD=<admin-password>
    ```
 
 ### Running the Application

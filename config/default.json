@@ -8,5 +8,8 @@
   "POSTGRES_URI":"postgresql://postgres:mysecretpassword@localhost:5432/postgres",
   "bcrypt": {
     "saltRounds": 10
-  }
+  },
+    "logLevel": "finest",
+    "useCors": true
+  
 }

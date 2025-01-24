@@ -1,12 +1,15 @@
 import jwt from "jsonwebtoken";
 import config from "config";
 import { getError } from "../errors/errors.js";
+import logger, { formatLogDetails } from "../utils/logger.js";
 
 export function authenticate(req, res, next) {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
         const token = authHeader.split(" ")[1];
         req.user = verifyToken(token);
+        const logMessage = `User authenticated: ${req.user?.sub || "unknown"} | Details: ${JSON.stringify(formatLogDetails(req))}`;
+        logger.info(logMessage);
     }
     next();
 }
@@ -41,4 +44,5 @@ export const authenticateRequest = (req) => {
     if (username !== process.env.OWNER_USERNAME || password !== process.env.OWNER_PASSWORD) {
         throw getError(401, "Unauthorized: Invalid credentials");
     }
+    logger.info("Basic authentication succeeded");
 };

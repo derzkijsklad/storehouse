@@ -1,6 +1,5 @@
 import Joi from "joi"
-
-
+import { PATHS } from "../config/paths.js";
 
 export const schemaParams = Joi.object({
     id: Joi.number().integer().positive()
@@ -43,20 +42,20 @@ const schemaManageUserDelete = Joi.object({
 
 
 const schemas = {
-    '/api/auth/login': {
+    [PATHS.AUTH_LOGIN]: {
         POST: schemaLogin,
     },
-    '/api/auth/password': {
+    [PATHS.AUTH_PASSWORD]: {
         PUT: schemaUpdatePassword,
     },
-    '/api/auth/email': {
+    [PATHS.AUTH_EMAIL]: {
         PATCH: schemaChangeEmail,
     },
-    '/api/orders': {
+    [PATHS.ORDERS]: {
         GET: schemaGetOrders,
         POST: schemaCreateOrder
     },
-    '/api/auth/manageUser': {
+    [PATHS.MANAGE_USER]: {
         POST: schemaManageUserAddUpdate,
         PUT: schemaManageUserAddUpdate,
         DELETE: schemaManageUserDelete,

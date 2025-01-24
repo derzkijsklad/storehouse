@@ -9,22 +9,24 @@ import schemas from "./utils/schemas.js";
 import { orders_routes } from "./routes/ordersRoutes.js";
 import { errorsRoutes } from "./routes/errorsRoutes.js";
 import { auth, authenticate } from "./middlewares/authenticateMiddleware.js";
+import logger from "./utils/logger.js";
+import { ROUTES, skipRoutes } from "./config/paths.js";
+import config from "config";
 
-const skipRoutes = [
-    { path: "/api/auth/login", method: "POST"},
-    { path: "/api/auth/manageUser", method: "POST"},
-    { path: "/api/auth/manageUser", method: "PUT"},
-    { path: "/api/auth/manageUser", method: "DELETE"}
-];
 
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT|| 5000;
 const server = app.listen(port);
+logger.info(`Server starting up on port ${port}`);
 server.on("listening", () => console.log(`listening on port ${server.address().port}`));
-app.use(corsMiddleware);
-app.options('*', corsMiddleware);
+
+if (config.get("useCors")) {
+    app.use(corsMiddleware);
+    app.options('*', corsMiddleware);
+}
+
 app.use(express.json());
 app.use(authenticate);
 app.use(auth(skipRoutes));
@@ -32,10 +34,10 @@ app.use(validateBody(schemas));
 app.use(valid);
 
 
-app.use('/api/auth', accounts_route);
-app.use('/api', orders_routes);
-app.use('/api', container_routes);
-app.use('/api', errorsRoutes);
+app.use(ROUTES.AUTH, accounts_route);
+app.use(ROUTES.ORDERS, orders_routes);
+app.use(ROUTES.CONTAINERS, container_routes);
+app.use(ROUTES.ERRORS, errorsRoutes);
 
 
 app.use(errorHandler)
