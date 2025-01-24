@@ -9,7 +9,7 @@ if (!fs.existsSync(logDir)) {
   }
 
 const logLevels = { finest: 1, debug: 2, info: 5, warn: 4, error: 3 };
-const defaultLogLevel = config.get("logLevel") || "info";
+const defaultLogLevel = process.env.LOG_LEVEL || config.get("logLevel") || "info";
 const currentLogLevel = logLevels[defaultLogLevel.toLowerCase()] || logLevels.info;
 
 const logMessage = (level, message) => {

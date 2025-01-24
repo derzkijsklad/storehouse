@@ -1,0 +1,15 @@
+{
+    "jwt": {
+      "expiresIn": "1h",
+      "secret": "PRODUCTION_JWT_SECRET"
+    },
+    "ACCOUNT_DB": "PRODUCTION_ACCOUNT_DB",
+    "ACCOUNT_COLLECTION": "PRODUCTION_ACCOUNT_COLLECTION",
+    "POSTGRES_URI": "postgresql://postgres:prodpassword@production-db:5432/prod_database",
+    "bcrypt": {
+      "saltRounds": 12
+    },
+    "logLevel": "info",
+    "useCors": false
+  }
+  
