@@ -26,8 +26,6 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest.Builder;
 
 public class App {
 
-    private static final int TRESHOLD_PERCENT_VALUE = 50;
-    private static final int MAX_VALUE = 20;
     private static final String DYNAMO_ORDERS_TABLE_NAME = "spot_lack_data";
     private static final String DEFAULT_LOGGING_LEVEL = "INFO";
     private static final String LOGGER_LEVEL = "LOGGER_LEVEL";
@@ -90,7 +88,7 @@ public class App {
         String RDSconnectionString = String.format("jdbc:postgresql://%s:5432/%s", dbEndpoint, dbName);
         connection = DriverManager.getConnection(RDSconnectionString, dbUsername, dbPassword);
         tableIsCreated = checkIfTableExists(connection, tableName);
-        logger.info(tableIsCreated + " - is table createdsam");
+        logger.info(tableIsCreated + " - is table created");
     }
 
     private void putOrderInRDS(Connection connection, String spotId, double value, String timestamp)

@@ -118,6 +118,32 @@ Resources:
             FilterCriteria:
               Filters:
                 - Pattern: '{"eventName": ["INSERT"]}'
+# CreateOrder Lambda function in VPC
+  CreateOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: CreateOrder
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Resource: '*'
+              Action:
+                - dynamodb:*
+      # VpcConfig:
+      #   SubnetIds:
+      #     - !Ref WarehouseSubnet1
+      #     - !Ref WarehouseSubnet2
+      #   SecurityGroupIds:
+      #     - !GetAtt LambdaSecurityGroup.GroupId
+      Events:
+        TableRecordChange:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: LATEST
+            Stream: !GetAtt SpotLackDataStream.StreamArn
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName": ["INSERT"]}'
 
   # Role with necessary permissions
   DataToRDSLambdaRole:
@@ -160,7 +186,7 @@ Resources:
           RDS_PASSWORD: postgres
           RDS_DB_NAME: warehouse_db
           RDS_TABLE_NAME: orders_data
-          DYNAMODB_TABLE: spot_lack_data
+          DYNAMODB_TABLE: orders_data
       Role: !GetAtt DataToRDSLambdaRole.Arn  # Attach the IAM role
       # VpcConfig:
       #   SubnetIds:
@@ -172,12 +198,12 @@ Resources:
         DynamoDBStream:
           Type: DynamoDB
           Properties:
-            Stream: !GetAtt SpotLackDataStream.StreamArn
+            Stream: !GetAtt OrdersDataStream.StreamArn
             StartingPosition: LATEST
             BatchSize: 5
             FilterCriteria:
               Filters:
-                - Pattern: '{"eventName": ["INSERT"]}'
+                - Pattern: '{"eventName": ["INSERT", "MODIFY"]}'
 
   # DynamoDB Table for storing spot lack data
   SpotLackDataStream:
@@ -199,7 +225,26 @@ Resources:
         WriteCapacityUnits: 5
       StreamSpecification:
         StreamViewType: NEW_IMAGE
-
+# DynamoDB Table for storing orders data
+  OrdersDataStream:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: orders_data
+      AttributeDefinitions:
+        - AttributeName: spotId
+          AttributeType: N
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: spotId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
   # RDS instance for PostgreSQL
   WarehouseDB:
     Type: AWS::RDS::DBInstance
@@ -252,3 +297,7 @@ Outputs:
   LackDetectionFunction:
     Description: "Lack Detection Lambda function ARN"
     Value: !GetAtt LackDetection.Arn
+
+  CreateOrderFunction:
+   Description: "Create Order Lambda function ARN"
+   Value: !GetAtt CreateOrder.Arn
