@@ -52,32 +52,43 @@ public class App {
         logger.info(event.toString());
         List<DynamodbStreamRecord> records = event.getRecords();
         if (records == null) {
-            logger.severe("no records in the event");
+            logger.severe("No records in the event");
         } else {
-            records.forEach(r -> {
-                Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue> map = r
-                        .getDynamodb().getNewImage();
-                if (map == null) {
-                    logger.warning("No new image found");
-                } else if (r.getEventName().equals("INSERT")) {
-                    String spotId = map.get("spotId").getN();
-                    double value = Double.parseDouble(map.get("value").getN());
-                    String timestamp = map.get("timestamp").getN();
-                    logger.info(String.format("Received: record with spotId=%s, value=%f, timestamp=%s",
-                            spotId, value, timestamp));
-                    try {
-                        putOrderInRDS(connection, spotId, value, timestamp);
-                    } catch (SQLException e) {
+        records.forEach(r -> {
+            Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue> map = r
+                    .getDynamodb().getNewImage();
+            if (map == null) {
+                logger.warning("No new image found");
+            } else {
+                String spotId = map.get("spotId").getN();
+                double value = Double.parseDouble(map.get("value").getN());
+                String timestamp = map.get("timestamp").getN();
+                logger.info(String.format("Received: record with spotId=%s, value=%f, timestamp=%s",
+                        spotId, value, timestamp));
 
-                        e.printStackTrace();
+                // Handle INSERT event
+                if (r.getEventName().equals("INSERT")) {
+                    try {
+                        putOrderInRDS(connection, spotId, value, timestamp, false);
+                    } catch (SQLException e) {
+                        logger.severe("Error inserting order: " + e.getMessage());
+                    }
+                }
+                // Handle MODIFY event
+                else if (r.getEventName().equals("MODIFY")) {
+                    try {
+                        modifyOrderInRDS(connection, r, spotId, timestamp);
+                    } catch (SQLException e) {
+                        logger.severe("Error modifying order: " + e.getMessage());
                     }
                 } else {
-                    logger.warning(r.getEventName() + " event name but should be INSERT");
+                    logger.warning(r.getEventName() + " event name, expected INSERT or MODIFY");
                 }
-
-            });
-        }
+            }
+        });
     }
+}
+
 
     private void initConnection() throws SQLException {
         String dbEndpoint = System.getenv("RDS_HOST");
@@ -91,19 +102,64 @@ public class App {
         logger.info(tableIsCreated + " - is table created");
     }
 
-    private void putOrderInRDS(Connection connection, String spotId, double value, String timestamp)
+    private void putOrderInRDS(Connection connection, String spotId, double value, String timestamp, boolean isClosed)
             throws SQLException {
 
-        String sql = "INSERT INTO orders_data (spot_id, value, timestamp, is_closed) VALUES (?, ?, ?, false);";
+        String sql = "INSERT INTO orders_data (spot_id, value, timestamp, is_closed) VALUES (?, ?, ?, ?);";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         Timestamp postgresTimestamp = convertTimestamp(timestamp);
         preparedStatement.setLong(1, Long.parseLong(spotId));
         preparedStatement.setDouble(2, value);
         preparedStatement.setTimestamp(3, postgresTimestamp);
-        logger.info(preparedStatement.toString());
+        preparedStatement.setBoolean(4, isClosed);
+        logger.info("PreparedStatement: " + preparedStatement.toString());
         preparedStatement.executeUpdate();
-
     }
+
+    private void modifyOrderInRDS(Connection connection, DynamodbStreamRecord r, String spotId, String timestamp)
+        throws SQLException {
+
+    // Access the 'newImage' from the record 'r' to check for changes
+    boolean isClosed = false;
+    Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue> newImage = r.getDynamodb().getNewImage();
+
+    // Check if the 'isClosed' field exists in the new image, and if so, get its value
+    if (newImage != null && newImage.containsKey("isClosed")) {
+        isClosed = newImage.get("isClosed").getBOOL();
+    } else {
+        logger.warning("No 'isClosed' field found in the new image.");
+    }
+
+    // Prepare the UPDATE SQL query
+ String sql = "UPDATE orders_data SET is_closed = ? WHERE spot_id = ? AND timestamp = ?;";
+
+
+    // Log the details to help debug
+    logger.info(String.format("Updating record with spotId=%s, timestamp=%s, isClosed=%b", spotId, timestamp, isClosed));
+
+    // Create the PreparedStatement
+    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+    Timestamp postgresTimestamp = convertTimestamp(timestamp);
+
+    // Set the parameters for the UPDATE query
+   preparedStatement.setBoolean(1, isClosed);           // Set the new is_closed value
+        preparedStatement.setLong(2, Long.parseLong(spotId)); // Set spot_id for the WHERE clause
+        preparedStatement.setTimestamp(3, postgresTimestamp);
+
+    // Log the prepared statement for debugging
+    logger.info("PreparedStatement for MODIFY event: " + preparedStatement.toString());
+
+    // Execute the update query
+    int rowsUpdated = preparedStatement.executeUpdate();
+    
+    // Log how many rows were updated
+    if (rowsUpdated == 0) {
+        logger.warning("No rows were updated. This may indicate that the spotId did not match any existing rows.");
+    } else {
+        logger.info(String.format("Successfully updated %d row(s).", rowsUpdated));
+    }
+}
+
 
     private boolean checkIfTableExists(Connection connection, String tableName) throws SQLException {
         DatabaseMetaData meta = connection.getMetaData();
