@@ -27,4 +27,13 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["DataToRDSLambda"]
 
+[function_build_definitions.8cc84df8-99b9-49c6-a2c5-a951565eadfe]
+codeuri = "C:\\Users\\strix\\git\\storehouse\\core\\warehouse\\CloseOrder"
+runtime = "java17"
+architecture = "x86_64"
+handler = "warehouse.App::handleRequest"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["CloseOrder"]
+
 [layer_build_definitions]

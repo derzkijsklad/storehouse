@@ -103,12 +103,26 @@ Resources:
               Resource: '*'
               Action:
                 - dynamodb:*
-      # VpcConfig:
-      #   SubnetIds:
-      #     - !Ref WarehouseSubnet1
-      #     - !Ref WarehouseSubnet2
-      #   SecurityGroupIds:
-      #     - !GetAtt LambdaSecurityGroup.GroupId
+      Events:
+        TableRecordChange:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: LATEST
+            Stream: !GetAtt ReceivedDataStream.StreamArn
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName": ["INSERT"]}'
+ # CloseOrder Lambda function in VPC
+  CloseOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: CloseOrder
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Resource: '*'
+              Action:
+                - dynamodb:*
       Events:
         TableRecordChange:
           Type: DynamoDB

@@ -73,6 +73,30 @@ Resources:
               - Pattern: '{"eventName": ["INSERT"]}'
     Metadata:
       SamResourceId: LackDetection
+  CloseOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: CloseOrder
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Resource: '*'
+          Action:
+          - dynamodb:*
+      Events:
+        TableRecordChange:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: LATEST
+            Stream:
+              Fn::GetAtt:
+              - ReceivedDataStream
+              - StreamArn
+            FilterCriteria:
+              Filters:
+              - Pattern: '{"eventName": ["INSERT"]}'
+    Metadata:
+      SamResourceId: CloseOrder
   CreateOrder:
     Type: AWS::Serverless::Function
     Properties:

@@ -69,8 +69,8 @@ public class App {
 			logger.info("after map");
             QueryRequest queryRequest = QueryRequest.builder()
             .tableName(ORDERS_TABLE_NAME)
-            .keyConditionExpression("spotId = :spotId") // Only the hash key condition
-            .filterExpression("isClosed = :isClosed") // Filter non-key attribute
+            .keyConditionExpression("spotId = :spotId") 
+            .filterExpression("isClosed = :isClosed") 
             .expressionAttributeValues(expressionValues)
             .build();
 			logger.info("after queryRequest");
