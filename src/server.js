@@ -9,9 +9,10 @@ import schemas from "./utils/schemas.js";
 import { orders_routes } from "./routes/ordersRoutes.js";
 import { errorsRoutes } from "./routes/errorsRoutes.js";
 import { auth, authenticate } from "./middlewares/authenticateMiddleware.js";
-import logger from "./utils/logger.js";
 import { ROUTES, skipRoutes } from "./config/paths.js";
 import config from "config";
+import logger from "./utils/logger.js";
+
 
 
 

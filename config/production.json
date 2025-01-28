@@ -9,7 +9,7 @@
     "bcrypt": {
       "saltRounds": 12
     },
-    "logLevel": "info",
+    "logLevel": "error",
     "useCors": false
   }
   

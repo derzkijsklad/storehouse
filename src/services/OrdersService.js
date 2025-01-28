@@ -43,7 +43,7 @@ export default class OrdersService {
             params.push(date);
         }
     
-        logger.finest(`Executing query with parameters: ${JSON.stringify(params)}`);
+        logger.debug(`Executing query with parameters: ${JSON.stringify(params)}`);
         const result = await this.#db.query(query, params);
     
         if (result.rows.length === 0) {

@@ -15,14 +15,14 @@ export default class PostgresConnection {
 
   async query(text, params) {
     const client = await this.#pool.connect();
-    logger.finest('Client acquired from pool');
+    logger.debug('Client acquired from pool');
     try {
       const result = await client.query(text, params);
       logger.debug('Query executed successfully');
       return result;
     }finally {
       client.release();
-      logger.finest('Client released back to pool');
+      logger.debug('Client released back to pool');
     }
   }
 

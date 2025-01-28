@@ -9,7 +9,7 @@
   "bcrypt": {
     "saltRounds": 10
   },
-    "logLevel": "finest",
+    "logLevel": "debug",
     "useCors": true
   
 }
