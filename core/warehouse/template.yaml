@@ -91,12 +91,31 @@ Resources:
         WriteCapacityUnits: 5
       StreamSpecification:
         StreamViewType: NEW_IMAGE
-
-  # LackDetection Lambda function in VPC
-  LackDetection:
+# DynamoDB Table for abnormal data
+  AbnormalDataStream:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: abnormal_data
+      AttributeDefinitions:
+        - AttributeName: spotId
+          AttributeType: N
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: spotId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+  # ValuesAnalyzer Lambda function in VPC
+  ValuesAnalyzer:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: LackDetection
+      CodeUri: ValuesAnalyzer
       Policies:
         - Statement:
             - Effect: Allow
@@ -109,6 +128,35 @@ Resources:
           Properties:
             StartingPosition: LATEST
             Stream: !GetAtt ReceivedDataStream.StreamArn
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName": ["INSERT"]}'
+#SNS Topic for abnormal data notifications
+  AbnormalValuesSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: AbnormalValuesTopic
+      Subscription:
+        - Protocol: email
+          Endpoint: nadele@gmail.com
+# AbnormalSender Lambda function in VPC
+  AbnormalSender:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: AbnormalSender
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt AbnormalValuesSNS.TopicName
+      Environment:
+        Variables:
+          TOPIC_ARN: !Ref AbnormalValuesSNS
+          REGION: !Sub ${AWS::Region} 
+      Events:
+        TableRecordChange:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: LATEST
+            Stream: !GetAtt AbnormalDataStream.StreamArn
             FilterCriteria:
               Filters:
                 - Pattern: '{"eventName": ["INSERT"]}'
@@ -308,9 +356,9 @@ Outputs:
     Description: "The ARN of the Lambda function"
     Value: !GetAtt DataToRDSLambda.Arn
 
-  LackDetectionFunction:
-    Description: "Lack Detection Lambda function ARN"
-    Value: !GetAtt LackDetection.Arn
+  ValuesAnalyzerFunction:
+    Description: "ValuesAnalyzer Lambda function ARN"
+    Value: !GetAtt ValuesAnalyzer.Arn
 
   CreateOrderFunction:
    Description: "Create Order Lambda function ARN"

@@ -49,10 +49,29 @@ Resources:
         WriteCapacityUnits: 5
       StreamSpecification:
         StreamViewType: NEW_IMAGE
-  LackDetection:
+  AbnormalDataStream:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: abnormal_data
+      AttributeDefinitions:
+      - AttributeName: spotId
+        AttributeType: N
+      - AttributeName: timestamp
+        AttributeType: N
+      KeySchema:
+      - AttributeName: spotId
+        KeyType: HASH
+      - AttributeName: timestamp
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+  ValuesAnalyzer:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: LackDetection
+      CodeUri: ValuesAnalyzer
       Policies:
       - Statement:
         - Effect: Allow
@@ -72,7 +91,44 @@ Resources:
               Filters:
               - Pattern: '{"eventName": ["INSERT"]}'
     Metadata:
-      SamResourceId: LackDetection
+      SamResourceId: ValuesAnalyzer
+  AbnormalValuesSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: AbnormalValuesTopic
+      Subscription:
+      - Protocol: email
+        Endpoint: nadele@gmail.com
+  AbnormalSender:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: AbnormalSender
+      Policies:
+      - SNSPublishMessagePolicy:
+          TopicName:
+            Fn::GetAtt:
+            - AbnormalValuesSNS
+            - TopicName
+      Environment:
+        Variables:
+          TOPIC_ARN:
+            Ref: AbnormalValuesSNS
+          REGION:
+            Fn::Sub: ${AWS::Region}
+      Events:
+        TableRecordChange:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: LATEST
+            Stream:
+              Fn::GetAtt:
+              - AbnormalDataStream
+              - StreamArn
+            FilterCriteria:
+              Filters:
+              - Pattern: '{"eventName": ["INSERT"]}'
+    Metadata:
+      SamResourceId: AbnormalSender
   CloseOrder:
     Type: AWS::Serverless::Function
     Properties:
@@ -259,11 +315,11 @@ Outputs:
       Fn::GetAtt:
       - DataToRDSLambda
       - Arn
-  LackDetectionFunction:
-    Description: Lack Detection Lambda function ARN
+  ValuesAnalyzerFunction:
+    Description: ValuesAnalyzer Lambda function ARN
     Value:
       Fn::GetAtt:
-      - LackDetection
+      - ValuesAnalyzer
       - Arn
   CreateOrderFunction:
     Description: Create Order Lambda function ARN
