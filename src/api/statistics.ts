@@ -7,6 +7,7 @@ interface Statistics {
   closedOrders: number;
   openOrders: number;
   avgProcessingTime: number;
+  [key: string]: number | string;  
 }
 
 export const getStatistics = async (): Promise<Statistics[]> => {

@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
-import { Box, Paper, Typography, Grid } from "@mui/material";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
+import { Box, Paper, Typography, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
 import { getStatistics } from "../../api/statistics";
 import './StatisticsPage.css';
 
 interface Order {
   id: number;
-  spot_id: number;
+  spot_id: string;
   value: number;
   is_closed: boolean;
-  created_at: string;
-  timestamp: string;
+  timestamp: string; // Ожидаем timestamp в формате ISO 8601
 }
 
 interface StatisticsItem {
@@ -25,17 +24,16 @@ interface StatisticsItem {
 
 const StatisticsPage: React.FC = () => {
   const [data, setData] = useState<StatisticsItem[]>([]);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>(""); 
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await getStatistics();
-        
-        // Преобразуем данные в нужный формат
-        const statisticsData = processOrdersData(result as unknown as Order[]);
-        setData(statisticsData);  
+        const orders = result as unknown as Order[];
+        const processedData = processOrdersData(orders);
+        setData(processedData);
         setLoading(false);
       } catch (error) {
         setError("Error fetching statistics data");
@@ -50,11 +48,12 @@ const StatisticsPage: React.FC = () => {
     const groupedByDate: Record<string, StatisticsItem> = {};
 
     orders.forEach(order => {
-      const date = new Date(order.created_at).toLocaleDateString(); // Группировка по дате
-
-      if (!groupedByDate[date]) {
-        groupedByDate[date] = {
-          date: date,
+      const orderDate = new Date(order.timestamp);
+      const dateString = orderDate.toLocaleDateString(); 
+      
+      if (!groupedByDate[dateString]) {
+        groupedByDate[dateString] = {
+          date: dateString,
           totalOrders: 0,
           closedOrders: 0,
           openOrders: 0,
@@ -63,28 +62,37 @@ const StatisticsPage: React.FC = () => {
         };
       }
 
-      const stats = groupedByDate[date];
+      const stats = groupedByDate[dateString];
       stats.totalOrders += 1;
       stats.totalAmount += order.value;
 
       if (order.is_closed) {
         stats.closedOrders += 1;
-        // Вычисление среднего времени обработки только для закрытых ордеров
-        const processingTime = new Date(order.timestamp).getTime() - new Date(order.created_at).getTime();
+        const createdAt = new Date(order.timestamp).getTime();
+        const currentTime = new Date().getTime();
+        const processingTime = currentTime - createdAt;
         stats.avgProcessingTime += processingTime;
       } else {
         stats.openOrders += 1;
       }
     });
 
-    // Рассчитываем среднее время обработки
     Object.values(groupedByDate).forEach(item => {
       if (item.closedOrders > 0) {
         item.avgProcessingTime = item.avgProcessingTime / item.closedOrders;
+      } else {
+        item.avgProcessingTime = 0;  
       }
     });
 
     return Object.values(groupedByDate);
+  };
+
+  const formatTime = (timeInMillis: number): string => {
+    const hours = Math.floor(timeInMillis / (1000 * 60 * 60));
+    const minutes = Math.floor((timeInMillis % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeInMillis % (1000 * 60)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
   };
 
   const totalOrders = data.reduce((acc, item) => acc + item.totalOrders, 0);
@@ -112,16 +120,32 @@ const StatisticsPage: React.FC = () => {
             <Paper className="chart-paper">
               <Typography variant="h6" className="chart-title">Orders by Date</Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="totalOrders" stroke="#8884d8" />
-                  <Line type="monotone" dataKey="closedOrders" stroke="#82ca9d" />
-                  <Line type="monotone" dataKey="openOrders" stroke="#ff8042" />
-                </LineChart>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Total Orders</TableCell>
+                        <TableCell>Closed Orders</TableCell>
+                        <TableCell>Open Orders</TableCell>
+                        <TableCell>Total Amount</TableCell>
+                        <TableCell>Avg Processing Time</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {data.map((item) => (
+                        <TableRow key={item.date}>
+                          <TableCell>{item.date}</TableCell>
+                          <TableCell>{item.totalOrders}</TableCell>
+                          <TableCell>{item.closedOrders}</TableCell>
+                          <TableCell>{item.openOrders}</TableCell>
+                          <TableCell>{item.totalAmount}</TableCell>
+                          <TableCell>{formatTime(item.avgProcessingTime)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </ResponsiveContainer>
             </Paper>
           </Grid>

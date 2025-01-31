@@ -26,13 +26,13 @@ const OrderList: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openCloseModal, setOpenCloseModal] = useState(false);
-  const [openDetailsModal, setOpenDetailsModal] = useState(false); // Добавлено состояние для модального окна деталей
+  const [openDetailsModal, setOpenDetailsModal] = useState(false); 
   const [newOrderData, setNewOrderData] = useState({
     spot_id: "",
     value: "",
   });
   const [orderToClose, setOrderToClose] = useState<number | null>(null);
-  const [orderDetails, setOrderDetails] = useState<Order | null>(null); // Для хранения информации о выбранном заказе
+  const [orderDetails, setOrderDetails] = useState<Order | null>(null); 
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -152,8 +152,8 @@ const OrderList: React.FC = () => {
             display: "flex",
             justifyContent: "center",
             gap: 20,
-            mt: 5, // отступ сверху
-            mb: 2, // отступ снизу
+            mt: 5, 
+            mb: 2, 
           }}
         >
           <Button variant="contained" color="primary" onClick={handleOpenCreateModal} sx={{ width: "150px" }}>
