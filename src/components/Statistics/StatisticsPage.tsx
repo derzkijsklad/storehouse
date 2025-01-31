@@ -10,7 +10,7 @@ interface Order {
   spot_id: string;
   value: number;
   is_closed: boolean;
-  timestamp: string; // Ожидаем timestamp в формате ISO 8601
+  timestamp: string;
 }
 
 interface StatisticsItem {
