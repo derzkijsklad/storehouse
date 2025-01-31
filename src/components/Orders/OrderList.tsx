@@ -80,7 +80,7 @@ const OrderList: React.FC = () => {
 
       setOrders([newOrder, ...orders]);
       setOpenCreateModal(false);
-      setNewOrderData({ spot_id: "", value: ""  });
+      setNewOrderData({ spot_id: "", value: "" });
     } catch (error) {
       setError("Failed to create order");
     }
@@ -146,7 +146,16 @@ const OrderList: React.FC = () => {
         <Typography variant="h3" align="center" gutterBottom>
           Orders
         </Typography>
-        <Box className="order-buttons">
+        <Box
+          className="order-buttons"
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 20,
+            mt: 5, // отступ сверху
+            mb: 2, // отступ снизу
+          }}
+        >
           <Button variant="contained" color="primary" onClick={handleOpenCreateModal} sx={{ width: "150px" }}>
             Create Order
           </Button>
@@ -300,25 +309,28 @@ const OrderList: React.FC = () => {
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
-            width: "400px",
           }}
         >
-          <Typography variant="h6" gutterBottom>
-            Order Details
-          </Typography>
           {orderDetails && (
             <>
+              <Typography variant="h6" gutterBottom>
+                Order Details
+              </Typography>
               <Typography variant="body1">ID: {orderDetails.id}</Typography>
               <Typography variant="body1">Value: {orderDetails.value}</Typography>
               <Typography variant="body1">
                 Timestamp: {new Date(orderDetails.timestamp).toLocaleString()}
               </Typography>
-              <Typography variant="body1">
-                Status: {orderDetails.is_closed ? "Closed" : "Open"}
-              </Typography>
+              <Typography variant="body1">Status: {orderDetails.is_closed ? "Closed" : "Open"}</Typography>
             </>
           )}
-          <Button variant="contained" color="secondary" onClick={handleCloseDetailsModal} fullWidth sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCloseDetailsModal}
+            fullWidth
+            sx={{ mt: 2 }}
+          >
             Close
           </Button>
         </Box>
