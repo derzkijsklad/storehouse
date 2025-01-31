@@ -1,4 +1,3 @@
-/* eslint-disable no-empty */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import {
@@ -27,17 +26,18 @@ const OrderList: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openCloseModal, setOpenCloseModal] = useState(false);
+  const [openDetailsModal, setOpenDetailsModal] = useState(false); // Добавлено состояние для модального окна деталей
   const [newOrderData, setNewOrderData] = useState({
-    container_id: "",
-    product_name: "",
-    quantity: "",
+    spot_id: "",
+    value: "",
   });
   const [orderToClose, setOrderToClose] = useState<number | null>(null);
+  const [orderDetails, setOrderDetails] = useState<Order | null>(null); // Для хранения информации о выбранном заказе
 
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        const fetchedOrders = await fetchOrders();
+        const fetchedOrders = await fetchOrders({});
         setOrders(fetchedOrders);
       } catch {
         setError("Failed to fetch orders");
@@ -47,7 +47,7 @@ const OrderList: React.FC = () => {
     loadOrders();
   }, []);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -64,30 +64,23 @@ const OrderList: React.FC = () => {
         return;
       }
 
-      const { container_id, product_name, quantity } = newOrderData;
-      if (!container_id || !product_name || !quantity) {
+      const { spot_id, value } = newOrderData;
+      if (!spot_id || !value) {
         setError("All fields are required.");
         return;
       }
 
-      const productExists = await checkProductExists(product_name, token);
-      if (productExists) {
-      } else {
-        await addProduct(product_name, token);
-      }
-
       const newOrder = await createOrder(
         {
-          container_id: parseInt(container_id, 10),
-          product_name,
-          quantity: parseInt(quantity, 10),
+          spot_id: parseInt(spot_id, 10),
+          value: parseFloat(value)
         },
         token
       );
 
       setOrders([newOrder, ...orders]);
       setOpenCreateModal(false);
-      setNewOrderData({ container_id: "", product_name: "", quantity: "" });
+      setNewOrderData({ spot_id: "", value: ""  });
     } catch (error) {
       setError("Failed to create order");
     }
@@ -137,6 +130,16 @@ const OrderList: React.FC = () => {
     setOrderToClose(id);
   };
 
+  const handleOpenDetailsModal = (order: Order) => {
+    setOrderDetails(order);
+    setOpenDetailsModal(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setOpenDetailsModal(false);
+    setOrderDetails(null);
+  };
+
   return (
     <Box className="app-container">
       <Paper className="paper-container">
@@ -172,8 +175,8 @@ const OrderList: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>ID</TableCell>
-                  <TableCell>Product Name</TableCell>
-                  <TableCell>Created At</TableCell>
+                  <TableCell>Value</TableCell>
+                  <TableCell>Timestamp</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
@@ -184,11 +187,17 @@ const OrderList: React.FC = () => {
                   .map((order) => (
                     <TableRow key={order.id}>
                       <TableCell>{order.id}</TableCell>
-                      <TableCell>{order.product_name}</TableCell>
-                      <TableCell>{new Date(order.created_at).toLocaleString()}</TableCell>
-                      <TableCell>{order.order_status}</TableCell>
+                      <TableCell>{order.value}</TableCell>
+                      <TableCell>{new Date(order.timestamp).toLocaleString()}</TableCell>
+                      <TableCell>{order.is_closed ? "Closed" : "Open"}</TableCell>
                       <TableCell>
-                        <Link to={`/orders/${order.id}`}>View Details</Link>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleOpenDetailsModal(order)}
+                        >
+                          View Details
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -228,25 +237,17 @@ const OrderList: React.FC = () => {
             Create New Order
           </Typography>
           <TextField
-            label="Container ID"
-            name="container_id"
-            value={newOrderData.container_id}
+            label="Spot ID"
+            name="spot_id"
+            value={newOrderData.spot_id}
             onChange={handleInputChange}
             fullWidth
             margin="normal"
           />
           <TextField
-            label="Product Name"
-            name="product_name"
-            value={newOrderData.product_name}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Quantity"
-            name="quantity"
-            value={newOrderData.quantity}
+            label="Value"
+            name="value"
+            value={newOrderData.value}
             onChange={handleInputChange}
             fullWidth
             margin="normal"
@@ -275,15 +276,50 @@ const OrderList: React.FC = () => {
             Close Order
           </Typography>
           <TextField
-            label="Order ID"
-            name="order_id"
+            label="Order ID to Close"
             value={orderToClose || ""}
-            onChange={(e) => handleSelectOrderToClose(Number(e.target.value))}
+            onChange={(e) => setOrderToClose(parseInt(e.target.value, 10))}
             fullWidth
             margin="normal"
           />
-          <Button variant="contained" color="primary" onClick={handleCloseOrder} fullWidth sx={{ mt: 2 }}>
-            Submit
+          <Button variant="contained" color="secondary" onClick={handleCloseOrder} fullWidth sx={{ mt: 2 }}>
+            Confirm Close
+          </Button>
+        </Box>
+      </Modal>
+
+      <Modal open={openDetailsModal} onClose={handleCloseDetailsModal}>
+        <Box
+          className="modal-container"
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            width: "400px",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Order Details
+          </Typography>
+          {orderDetails && (
+            <>
+              <Typography variant="body1">ID: {orderDetails.id}</Typography>
+              <Typography variant="body1">Value: {orderDetails.value}</Typography>
+              <Typography variant="body1">
+                Timestamp: {new Date(orderDetails.timestamp).toLocaleString()}
+              </Typography>
+              <Typography variant="body1">
+                Status: {orderDetails.is_closed ? "Closed" : "Open"}
+              </Typography>
+            </>
+          )}
+          <Button variant="contained" color="secondary" onClick={handleCloseDetailsModal} fullWidth sx={{ mt: 2 }}>
+            Close
           </Button>
         </Box>
       </Modal>

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Box, Typography, CircularProgress } from "@mui/material";
-import { fetchOrderDetails } from "../../api/orders";
-import type { OrderDetails as OrderDetailsType } from "../../api/orders"; 
+import { fetchOrders, Order } from "../../api/orders"; 
 
 const OrderDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const [order, setOrder] = useState<OrderDetailsType | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -16,9 +16,16 @@ const OrderDetails = () => {
           setError("Order ID is missing");
           return;
         }
-        const data = await fetchOrderDetails(id);
-        setOrder(data);
-      } catch {
+        const orders = await fetchOrders({}); 
+        const foundOrder = orders.find((order) => order.id === parseInt(id, 10)); 
+
+        if (!foundOrder) {
+          setError(`Order with ID ${id} not found`);
+          return;
+        }
+
+        setOrder(foundOrder); 
+      } catch (err) {
         setError("Failed to load order details");
       }
     };
@@ -32,19 +39,12 @@ const OrderDetails = () => {
   return (
     <Box>
       <Typography variant="h4">Order #{order.id}</Typography>
-      <Typography>Status: {order.order_status}</Typography>
-      <Typography>Created At: {new Date(order.created_at).toLocaleString()}</Typography>
+      <Typography>Spot ID: {order.spot_id}</Typography>
+      <Typography>Value: {order.value}</Typography>
+      <Typography>Status: {order.is_closed ? "Closed" : "Open"}</Typography>
       <Typography>
-        Closed At: {order.closed_at ? new Date(order.closed_at).toLocaleString() : "Not Closed"}
+        Created At: {new Date(order.timestamp).toLocaleString()}
       </Typography>
-      <Typography variant="h5">Items</Typography>
-      <ul>
-        {order.items.map((item, index) => (
-          <li key={index}>
-            {item.name}: {item.quantity}
-          </li>
-        ))}
-      </ul>
     </Box>
   );
 };
