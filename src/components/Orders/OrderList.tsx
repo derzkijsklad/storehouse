@@ -16,7 +16,7 @@ import {
   TextField,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { fetchOrders, createOrder, closeOrder, checkProductExists, addProduct, Order } from "../../api/orders";
+import { fetchOrders, createOrder, closeOrder, Order } from "../../api/orders";
 import "./Orders.css";
 
 const OrderList: React.FC = () => {
@@ -124,10 +124,6 @@ const OrderList: React.FC = () => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setNewOrderData({ ...newOrderData, [name]: value });
-  };
-
-  const handleSelectOrderToClose = (id: number) => {
-    setOrderToClose(id);
   };
 
   const handleOpenDetailsModal = (order: Order) => {

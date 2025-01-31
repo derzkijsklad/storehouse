@@ -95,7 +95,6 @@ const StatisticsPage: React.FC = () => {
     return `${hours}h ${minutes}m ${seconds}s`;
   };
 
-  const totalOrders = data.reduce((acc, item) => acc + item.totalOrders, 0);
   const closedOrders = data.reduce((acc, item) => acc + item.closedOrders, 0);
   const openOrders = data.reduce((acc, item) => acc + item.openOrders, 0);
 
@@ -173,7 +172,7 @@ const StatisticsPage: React.FC = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
-                    {pieData.map((entry, index) => (
+                    {pieData.map((_entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
