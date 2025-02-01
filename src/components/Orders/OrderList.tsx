@@ -14,9 +14,16 @@ import {
   Typography,
   Modal,
   TextField,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Grid,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { fetchOrders, createOrder, closeOrder, Order } from "../../api/orders";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import "./Orders.css";
 
 const OrderList: React.FC = () => {
@@ -58,26 +65,26 @@ const OrderList: React.FC = () => {
 
   const handleCreateOrder = async () => {
     try {
-      const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("authToken"); 
       if (!token) {
         setError("User is not authenticated");
         return;
       }
-
+  
       const { spot_id, value } = newOrderData;
       if (!spot_id || !value) {
         setError("All fields are required.");
         return;
       }
-
+  
       const newOrder = await createOrder(
         {
           spot_id: parseInt(spot_id, 10),
-          value: parseFloat(value)
+          value: parseFloat(value),
         },
         token
       );
-
+  
       setOrders([newOrder, ...orders]);
       setOpenCreateModal(false);
       setNewOrderData({ spot_id: "", value: "" });
@@ -85,15 +92,15 @@ const OrderList: React.FC = () => {
       setError("Failed to create order");
     }
   };
-
+  
   const handleCloseOrder = async () => {
     try {
-      const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("authToken"); 
       if (!token) {
         setError("User is not authenticated");
         return;
       }
-
+  
       if (orderToClose !== null) {
         await closeOrder({ id: orderToClose }, token);
         setOrders(orders.filter((order) => order.id !== orderToClose));
@@ -138,91 +145,91 @@ const OrderList: React.FC = () => {
 
   return (
     <Box className="app-container">
-      <Paper className="paper-container">
-        <Typography variant="h3" align="center" gutterBottom>
-          Orders
-        </Typography>
-        <Box
-          className="order-buttons"
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 20,
-            mt: 5, 
-            mb: 2, 
-          }}
-        >
-          <Button variant="contained" color="primary" onClick={handleOpenCreateModal} sx={{ width: "150px" }}>
-            Create Order
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleOpenCloseModal}
-            sx={{ width: "150px" }}
-          >
-            Close Order
-          </Button>
-          <Link to="/statistics">
-            <Button variant="contained" color="success" sx={{ width: "200px" }}>
-              View Statistics
+      <AppBar position="sticky" sx={{ backgroundColor: "#acc7eb" }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Orders Management
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleOpenCreateModal}
+              startIcon={<AddIcon />}
+            >
+              Create Order
             </Button>
-          </Link>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleOpenCloseModal}
+              startIcon={<CloseIcon />}
+            >
+              Close Order
+            </Button>
+            <Link to="/statistics">
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<BarChartIcon />}
+              >
+                View Stats
+              </Button>
+            </Link>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {error && <Typography color="error" align="center" sx={{ mt: 2 }}>{error}</Typography>}
+
+      <Paper className="paper-container" sx={{ mt: 2 }}>
+        <TableContainer>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell><strong>ID</strong></TableCell>
+                <TableCell><strong>Value</strong></TableCell>
+                <TableCell><strong>Timestamp</strong></TableCell>
+                <TableCell><strong>Status</strong></TableCell>
+                <TableCell><strong>Actions</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {orders
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>{order.id}</TableCell>
+                    <TableCell>{order.value}</TableCell>
+                    <TableCell>{new Date(order.timestamp).toLocaleString()}</TableCell>
+                    <TableCell>{order.is_closed ? "Closed" : "Open"}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleOpenDetailsModal(order)}
+                      >
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Box display="flex" justifyContent="flex-end" mt={2}>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={orders.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </Box>
       </Paper>
-
-      {error && <Typography color="error">{error}</Typography>}
-
-      <Box className="table-container">
-        <Paper className="table-paper">
-          <TableContainer>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Value</TableCell>
-                  <TableCell>Timestamp</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {orders
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{order.id}</TableCell>
-                      <TableCell>{order.value}</TableCell>
-                      <TableCell>{new Date(order.timestamp).toLocaleString()}</TableCell>
-                      <TableCell>{order.is_closed ? "Closed" : "Open"}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => handleOpenDetailsModal(order)}
-                        >
-                          View Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <Box display="flex" justifyContent="flex-end" mt={2}>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={orders.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </Box>
-        </Paper>
-      </Box>
 
       <Modal open={openCreateModal} onClose={handleCloseCreateModal}>
         <Box
@@ -236,6 +243,7 @@ const OrderList: React.FC = () => {
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
+            width: "400px",
           }}
         >
           <Typography variant="h6" gutterBottom>
@@ -275,6 +283,7 @@ const OrderList: React.FC = () => {
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
+            width: "400px",
           }}
         >
           <Typography variant="h6" gutterBottom>
@@ -282,14 +291,19 @@ const OrderList: React.FC = () => {
           </Typography>
           <TextField
             label="Order ID to Close"
-            value={orderToClose || ""}
-            onChange={(e) => setOrderToClose(parseInt(e.target.value, 10))}
+            type="number"
+            onChange={(e) => setOrderToClose(Number(e.target.value))}
             fullWidth
             margin="normal"
           />
-          <Button variant="contained" color="secondary" onClick={handleCloseOrder} fullWidth sx={{ mt: 2 }}>
-            Confirm Close
-          </Button>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Button variant="contained" color="secondary" onClick={handleCloseOrder} sx={{ width: "48%" }}>
+              Close Order
+            </Button>
+            <Button variant="outlined" color="error" onClick={handleCloseCloseModal} sx={{ width: "48%" }}>
+              Cancel
+            </Button>
+          </Box>
         </Box>
       </Modal>
 
@@ -305,6 +319,7 @@ const OrderList: React.FC = () => {
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
+            width: "400px",
           }}
         >
           {orderDetails && (
@@ -312,23 +327,14 @@ const OrderList: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Order Details
               </Typography>
-              <Typography variant="body1">ID: {orderDetails.id}</Typography>
-              <Typography variant="body1">Value: {orderDetails.value}</Typography>
+              <Typography variant="body1"><strong>ID:</strong> {orderDetails.id}</Typography>
+              <Typography variant="body1"><strong>Value:</strong> {orderDetails.value}</Typography>
+              <Typography variant="body1"><strong>Status:</strong> {orderDetails.is_closed ? "Closed" : "Open"}</Typography>
               <Typography variant="body1">
-                Timestamp: {new Date(orderDetails.timestamp).toLocaleString()}
+                <strong>Timestamp:</strong> {new Date(orderDetails.timestamp).toLocaleString()}
               </Typography>
-              <Typography variant="body1">Status: {orderDetails.is_closed ? "Closed" : "Open"}</Typography>
             </>
           )}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCloseDetailsModal}
-            fullWidth
-            sx={{ mt: 2 }}
-          >
-            Close
-          </Button>
         </Box>
       </Modal>
     </Box>

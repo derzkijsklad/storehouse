@@ -16,7 +16,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const token = await loginService(username, password);
-      sessionStorage.setItem("authToken", token);
+      sessionStorage.setItem("authToken", token); 
       login(token);
       navigate("/orders");
     } catch (err) {
