@@ -14,7 +14,7 @@ export const skipRoutes = [
 ];
 export const ROUTES = {
     AUTH: '/api/auth',
-    ORDERS: '/api',
+    ORDERS: PATHS.ORDERS,
     CONTAINERS: '/api',
     ERRORS: '/api',
 };
