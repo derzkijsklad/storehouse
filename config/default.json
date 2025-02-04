@@ -5,6 +5,8 @@
   },
   "ACCOUNT_DB": "ACCOUNT_DB",
   "ACCOUNT_COLLECTION": "ACCOUNT_COLLECTION",
+    "ERROR_DB": "ERRORS",
+    "ERROR_COLLECTION": "error_logs",
   "POSTGRES_URI":"postgresql://postgres:mysecretpassword@localhost:5432/postgres",
   "bcrypt": {
     "saltRounds": 10

@@ -7,8 +7,9 @@ import GetErrorsService from "../services/GetErrorsService.js";
 
 dotenv.config()
 
-export const accountsService = new AccountsService(process.env.MONGO_URI , config.get('ACCOUNT_DB'));
+export const accountsService = new AccountsService(process.env.MONGO_URI, config.get('ACCOUNT_DB'));
 
 export const containersService = new ContainerDataService(process.env.POSTGRES_URI || config.get('POSTGRES_URI'));
 export const ordersService = new OrdersService(process.env.POSTGRES_URI || config.get('POSTGRES_URI'));
-export const getErrorsService = new GetErrorsService(process.env.POSTGRES_URI || config.get('POSTGRES_URI'));
+
+export const getErrorsService = new GetErrorsService(process.env.MONGO_URI, config.get('ERROR_DB'),config.get('ERROR_COLLECTION'));

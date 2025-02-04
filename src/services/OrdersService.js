@@ -1,7 +1,7 @@
 
 import PostgresConnection from '../databases/postgres/PostgresConnection.js';
 import { getError } from '../errors/errors.js';
-import { isValidDate } from '../utils/dateUtils.js';
+import { isValidDate } from '../utils/constants.js';
 import logger from '../utils/logger.js';
 import { ORDER_QUERIES } from '../utils/queries.js';
 

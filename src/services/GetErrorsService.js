@@ -1,17 +1,31 @@
-
-import PostgresConnection from '../databases/postgres/PostgresConnection.js';
-import { ERROR_QUERIES } from '../utils/queries.js';
+import { MongoClient } from "mongodb";
+import { formatMessage } from "../utils/constants.js";
 
 export default class GetErrorsService {
-  #db;
+    #client;
+    #collection;
 
-  constructor(connectionString) {
-    this.#db = new PostgresConnection(connectionString);
-  }
+    constructor(connectionString, dbName, collectionName) {
+        this.#client = new MongoClient(connectionString);
+        this.#collection = this.#client.db(dbName).collection(collectionName);
+    }
 
-  async getAllErrors() {
-    const query = ERROR_QUERIES.GET_ALL_ERRORS;
-    const result = await this.#db.query(query);
-    return result.rows;
-  }
+    async getAllErrors() {
+        try {
+            await this.#client.connect();
+            const errors = await this.#collection
+                .find({}, { projection: { _id: 0,id: 1, message: 1 } })
+                .sort({ timestamp: -1 })
+                .toArray();
+             return errors.map(error => ({
+              id: error.id,
+              message: formatMessage(error.message)
+          }));
+        } catch (error) {
+            console.error("Error fetching logs from MongoDB:", error);
+            return [];
+        } finally {
+            await this.#client.close();
+        }
+    }
 }
