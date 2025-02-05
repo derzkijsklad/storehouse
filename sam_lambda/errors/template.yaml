@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  errors
+  Sample SAM Template for errors
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hello-world/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Role: !GetAtt CloudWatchRole.Arn
+      Environment:
+        Variables:
+          MONGO_URI: !Ref MongoUriParameter 
+          DB_NAME: !Ref DbNameParameter
+          COLLECTION_NAME: !Ref CollectionNameParameter
+      Events:
+        CloudWatchLogs:
+          Type: CloudWatchLogs
+          Properties:
+            LogGroupName: "/docker/backend-app"
+            FilterPattern: "[error]"
+
+
+  CloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CloudWatchReadAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogStreams  
+                  - logs:FilterLogEvents    
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/docker/backend-app:*"
+
+Parameters:
+  MongoUriParameter:
+    Type: String
+    Description: "MongoDB Connection URI"
+  DbNameParameter:
+    Type: String
+    Default: "ERRORS"
+    Description: "Database Name"
+  CollectionNameParameter:
+    Type: String
+    Default: "error_logs"
+    Description: "Collection Name"
+
+Outputs:
+  HelloWorldFunction:
+    Description: Hello World Lambda Function ARN
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: CloudWatch Role ARN
+    Value: !GetAtt CloudWatchRole.Arn
